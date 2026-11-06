@@ -1,0 +1,23 @@
+# Credenciales
+.env
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Datos: los PDF públicos se descargan localmente (ver data/README.md); los .md ficticios sí se versionan
+data/raw/*.pdf
+data/index/
+
+# Ejecución
+logs/
+eval/results/
+
+# Sistema
+.DS_Store
+.idea/
+.vscode/

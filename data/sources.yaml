@@ -1,0 +1,60 @@
+# Inventario de fuentes autorizadas (enunciado §5.2).
+# Cada documento se coloca en data/raw/<file>. El pipeline de ingesta solo indexa lo que aparece aquí.
+#   access:  roles que pueden recuperar el documento (colaborador, rrhh)
+#   vigente: false = versión histórica; solo se usa si la consulta pide explícitamente una versión anterior
+sources:
+  - file: codigo_de_trabajo.pdf
+    title: Código de Trabajo de Guatemala (Decreto 1441 y reformas)
+    owner: Congreso de la República de Guatemala
+    url: https://www.amsclae.gob.gt/wp-content/uploads/2026/08/10.-DECRETO-1441-CODIGO-DE-TRABAJO.pdf
+    license: Norma jurídica de carácter público
+    version: "VERIFICAR - indicar edición/fecha de la última reforma incluida"
+    update_frequency: Cuando el Congreso aprueba reformas
+    sensitivity: publica
+    access: [colaborador, rrhh]
+    vigente: true
+
+  - file: decreto_42_92_bono14.pdf
+    title: Ley de Bonificación Anual para Trabajadores del Sector Privado y Público (Decreto 42-92)
+    owner: Congreso de la República de Guatemala
+    url: https://mcd.gob.gt/wp-content/uploads/2013/07/bono-14-decreto-42-92.pdf
+    license: Norma jurídica de carácter público
+    version: "1992"
+    update_frequency: Eventual (reformas)
+    sensitivity: publica
+    access: [colaborador, rrhh]
+    vigente: true
+
+  - file: decreto_76_78_aguinaldo.pdf
+    title: Ley Reguladora de la Prestación del Aguinaldo para los Trabajadores del Sector Privado (Decreto 76-78)
+    owner: Congreso de la República de Guatemala
+    url: https://natlex.ilo.org/dyn/natlex2/r/natlex/fe/details?p3_isn=20661
+    license: Norma jurídica de carácter público
+    version: "1978"
+    update_frequency: Eventual (reformas)
+    sensitivity: publica
+    access: [colaborador, rrhh]
+    vigente: true
+
+  # --- Documentos internos FICTICIOS creados por el equipo para demostrar permisos y versionado ---
+  - file: politica_interna_v2026.md
+    title: Política Interna de Personal - Distribuidora Ejemplo, S.A. (ficticia) v2026
+    owner: Equipo del proyecto (documento sintético)
+    url: ""
+    license: Creado por el equipo, sin datos reales
+    version: "2026-1"
+    update_frequency: Anual
+    sensitivity: privada
+    access: [rrhh]
+    vigente: true
+
+  - file: politica_interna_v2024.md
+    title: Política Interna de Personal - Distribuidora Ejemplo, S.A. (ficticia) v2024
+    owner: Equipo del proyecto (documento sintético)
+    url: ""
+    license: Creado por el equipo, sin datos reales
+    version: "2024-1"
+    update_frequency: Anual
+    sensitivity: privada
+    access: [rrhh]
+    vigente: false

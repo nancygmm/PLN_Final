@@ -1,0 +1,19 @@
+# Núcleo
+pydantic>=2.6
+pyyaml>=6.0
+python-dotenv>=1.0
+pypdf>=4.0
+rank-bm25>=0.2.2
+numpy>=1.26
+
+# Recuperación semántica (embeddings). Opcional: sin esto el sistema usa solo BM25.
+sentence-transformers>=3.0
+
+# Cliente para LLMs compatibles con OpenAI (OpenAI, Groq, Gemini, Ollama)
+openai>=1.40
+
+# Interfaz de demostración
+streamlit>=1.36
+
+# Pruebas
+pytest>=8.0
