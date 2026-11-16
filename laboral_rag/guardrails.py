@@ -1,4 +1,3 @@
-"""Guardrails de entrada, de contexto (inyección indirecta) y de salida, más sanitización de logs."""
 from __future__ import annotations
 
 import re
@@ -9,7 +8,6 @@ from .config import settings
 from .schemas import RAGResponse
 from .text import strip_accents
 
-# Patrones de inyección de instrucciones (se comparan sin tildes y en minúsculas).
 INJECTION_PATTERNS = [
     r"ignora(r)?\s+(todas?\s+)?(las\s+|tus\s+)?(instrucciones|reglas|indicaciones)",
     r"olvida(r)?\s+(todo|tus\s+instrucciones|lo\s+anterior)",
@@ -24,12 +22,21 @@ INJECTION_PATTERNS = [
 ]
 _INJ = [re.compile(p) for p in INJECTION_PATTERNS]
 
-# Acciones que el sistema NUNCA ejecuta por sí mismo: requieren autorización humana.
 CRITICAL_ACTIONS = re.compile(
     r"\b(despide|despedir|registra|registrar|aprueba|aprobar|envia|enviar|modifica|modificar|borra|borrar|"
     r"elimina|eliminar|paga|pagar|ejecuta|ejecutar)\b.*\b(planilla|empleado|colaborador|pago|liquidacion|"
     r"despido|contrato|registro|expediente)",
 )
+
+_INTERROGATIVE = re.compile(r"[¿?]|\b(cuales?|cuantos?|cuanta|cuantas|que|cuanto|como|cuando|donde|por\s*que)\b")
+_RECORD_ID = re.compile(r"\b\d{3,}\b")  
+
+
+def _is_execution_order(query: str) -> bool:
+    q = _norm(query)
+    if _RECORD_ID.search(q):  
+        return True
+    return not _INTERROGATIVE.search(q)  
 
 DOMAIN_TERMS = set(
     """trabajo trabajador trabajadora empleado empleada colaborador patrono empleador salario sueldo aguinaldo bono
@@ -41,7 +48,7 @@ DOMAIN_TERMS = set(
 )
 
 PII_PATTERNS = [
-    (re.compile(r"\b\d{4}\s?\d{5}\s?\d{4}\b"), "[DPI]"),  # DPI/CUI: 13 dígitos
+    (re.compile(r"\b\d{4}\s?\d{5}\s?\d{4}\b"), "[DPI]"),  
     (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]+\b"), "[EMAIL]"),
     (re.compile(r"\b(?:\+?502[\s-]?)?\d{4}[\s-]?\d{4}\b"), "[TEL]"),
     (re.compile(r"\bnit[:\s]*\d{5,9}-?[\dkK]\b", re.I), "[NIT]"),
@@ -65,11 +72,9 @@ def is_injection(text: str) -> bool:
     return any(p.search(t) for p in _INJ)
 
 
-# ---------- Entrada ----------
 def check_input(query: str) -> GuardResult:
     if not isinstance(query, str):
         return GuardResult(False, "entrada_invalida")
-    # Quitar caracteres de control / invisibles que se usan para esconder instrucciones
     clean = "".join(c for c in query if unicodedata.category(c)[0] != "C" or c in "\n\t").strip()
     if not clean:
         return GuardResult(False, "consulta_vacia")
@@ -78,7 +83,7 @@ def check_input(query: str) -> GuardResult:
     if is_injection(clean):
         return GuardResult(False, "posible_inyeccion", ["prompt_injection"], clean)
     flags = []
-    if CRITICAL_ACTIONS.search(_norm(clean)):
+    if CRITICAL_ACTIONS.search(_norm(clean)) and _is_execution_order(clean):
         flags.append("accion_critica")
     return GuardResult(True, flags=flags, text=clean)
 
@@ -88,7 +93,6 @@ def in_domain(query: str) -> bool:
     return bool(toks & DOMAIN_TERMS)
 
 
-# ---------- Contexto (inyección indirecta / envenenamiento de fuentes) ----------
 def filter_context(hits: list) -> tuple[list, list[str]]:
     """Descarta chunks recuperados que contienen instrucciones dirigidas al modelo."""
     kept, dropped = [], []
@@ -100,9 +104,7 @@ def filter_context(hits: list) -> tuple[list, list[str]]:
     return kept, dropped
 
 
-# ---------- Salida ----------
 def check_output(resp: RAGResponse, allowed_chunk_ids: set[str], tool_ran: bool = False) -> tuple[RAGResponse, list[str]]:
-    """Verifica que las citas existan entre los chunks recuperados y que no se filtre el prompt."""
     flags = []
     valid = [s for s in resp.sources if s.chunk_id in allowed_chunk_ids]
     if len(valid) != len(resp.sources):

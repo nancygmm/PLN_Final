@@ -23,6 +23,13 @@ MAX_CHARS = 1800  # artículos más largos se subdividen
 OVERLAP = 200
 
 
+def _is_real_article_header(full: str, m: re.Match) -> bool:
+    nl = full.find("\n", m.end())
+    rest = full[m.end(): nl if nl != -1 else len(full)]
+    rest = re.sub(r"^[\s.]*\d+", "", rest, count=1)  
+    return bool(re.search(r"[^\W\d_]", rest))  
+
+
 @dataclass
 class SourceMeta:
     file: str
@@ -102,7 +109,7 @@ def segment(pages: list[str]) -> list[tuple[str, int, str | None]]:
                 page = pg
         return page
 
-    matches = list(ARTICLE_RE.finditer(full))
+    matches = [m for m in ARTICLE_RE.finditer(full) if _is_real_article_header(full, m)]
     segments: list[tuple[str, int, str | None]] = []
     if not matches:  # documento sin artículos: partir por párrafos/ventana
         for part in _split_long(full.strip()):
